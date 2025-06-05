@@ -1,0 +1,8 @@
+FROM typesense/typesense:28.0
+
+RUN mkdir -p /data
+
+COPY wait-for-nodes.sh /wait-for-nodes.sh
+RUN chmod +x /wait-for-nodes.sh
+
+ENTRYPOINT ["/wait-for-nodes.sh"]

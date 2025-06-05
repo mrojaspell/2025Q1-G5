@@ -1,0 +1,12 @@
+FROM amazonlinux:2023
+
+RUN dnf install -y \
+    awscli \
+    iproute \
+    jq && \
+    dnf clean all
+
+COPY update-nodes.sh /update-nodes.sh
+RUN chmod +x /update-nodes.sh
+
+ENTRYPOINT ["/update-nodes.sh"]

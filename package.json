@@ -1,0 +1,29 @@
+{
+  "name": "market-app",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "workspaces": [
+    "server-api",
+    "web-client"
+  ],
+  "scripts": {
+    "prepare": "npx husky install",
+    "dev": "npm run dev --workspace=web-client",
+    "start": "npm run start --workspace=web-client",
+    "build": "npm run build --workspace=web-client",
+    "export": "npm run export --workspace=web-client"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "husky": "^8.0.1"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.27.1"
+  }
+}

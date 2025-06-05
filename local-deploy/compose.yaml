@@ -1,0 +1,103 @@
+services:
+  typesense:
+    image: typesense/typesense:28.0
+    restart: on-failure
+    ports:
+      - "8108:8108"
+    command: '--data-dir / --api-key=xyz --enable-cors'
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "4566:4566"  # LocalStack Edge Port
+    environment:
+      - SERVICES=dynamodb,sqs,lambda
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DYNAMODB_IN_MEMORY=1
+    volumes:
+      - "./init:/etc/localstack/init/ready.d"  # init scripts
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../web-client/out:/host/web-client/out:ro" # Mount spa
+      - "../lambdas:/lambda" # mount lambdas
+
+  fastapi:
+    build: ../api
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - DYNAMODB_ENDPOINT=http://localstack:4566
+      - PRODUCTS_TABLE_NAME=unimart-products
+      - CARTS_TABLE_NAME=unimart-carts
+      - TYPESENSE_HOST=typesense
+      - TYPESENSE_PORT=8108
+      - TYPESENSE_API_KEY=xyz
+      - COLLECTION_NAME=products
+    volumes:
+      - ../api:/app
+
+
+
+  scraper-carrefour:
+    build:
+      context: ../scraping
+    container_name: scraper_carrefour
+    depends_on:
+      - localstack
+    environment:
+      - SCRAPER_STORE=carrefour
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/unimart-products-queue
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - SQS_ENDPOINT_URL=http://localstack:4566
+
+  scraper-disco:
+    build:
+      context: ../scraping
+    container_name: scraper_disco
+    depends_on:
+      - localstack
+    environment:
+      - SCRAPER_STORE=disco
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/unimart-products-queue
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - SQS_ENDPOINT_URL=http://localstack:4566
+
+  scraper-jumbo:
+    build:
+      context: ../scraping
+    container_name: scraper_jumbo
+    depends_on:
+      - localstack
+    environment:
+      - SCRAPER_STORE=jumbo
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/unimart-products-queue
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - SQS_ENDPOINT_URL=http://localstack:4566
+
+  scraper-dia:
+    build:
+      context: ../scraping
+    container_name: scraper_dia
+    depends_on:
+      - localstack
+    environment:
+      - SCRAPER_STORE=dia
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/unimart-products-queue
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - SQS_ENDPOINT_URL=http://localstack:4566
